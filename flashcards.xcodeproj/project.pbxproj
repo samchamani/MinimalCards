@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5CDFC6582E9FD32300634628 /* SwiftCSV in Frameworks */ = {isa = PBXBuildFile; productRef = 5CDFC6572E9FD32300634628 /* SwiftCSV */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5CEECB682E9BBBFB007D7F65 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5CDFC6582E9FD32300634628 /* SwiftCSV in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = flashcards;
 			packageProductDependencies = (
+				5CDFC6572E9FD32300634628 /* SwiftCSV */,
 			);
 			productName = flashcards;
 			productReference = 5CEECB572E9BBBFA007D7F65 /* flashcards.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 5CEECB4E2E9BBBFA007D7F65;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5C8334672E9FD2B000DAE589 /* XCRemoteSwiftPackageReference "SwiftCSV" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5CEECB582E9BBBFA007D7F65 /* Products */;
 			projectDirPath = "";
@@ -396,6 +405,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"flashcards/Preview Content\"";
+				DEVELOPMENT_TEAM = 5RXW63M3JX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -424,6 +434,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"flashcards/Preview Content\"";
+				DEVELOPMENT_TEAM = 5RXW63M3JX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -552,6 +563,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5C8334672E9FD2B000DAE589 /* XCRemoteSwiftPackageReference "SwiftCSV" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftcsv/SwiftCSV";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5CDFC6572E9FD32300634628 /* SwiftCSV */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5C8334672E9FD2B000DAE589 /* XCRemoteSwiftPackageReference "SwiftCSV" */;
+			productName = SwiftCSV;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5CEECB4F2E9BBBFA007D7F65 /* Project object */;
 }

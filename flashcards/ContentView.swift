@@ -8,14 +8,22 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showCardsView = false
+    @State private var cardSet = CardSet(
+        name: "New Set", cards: [Card(sideA: "", sideB: "")]
+    )
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            
+            StartView(showCardsView: $showCardsView, cardSet: $cardSet)
+                .navigationDestination( isPresented: $showCardsView){
+                CardsView(cardSet: $cardSet)
+                }
+                .navigationTitle("")
+            
         }
-        .padding()
+        
     }
 }
 

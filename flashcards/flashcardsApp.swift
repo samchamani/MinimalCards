@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct flashcardsApp: App {
+
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+                ContentView()
+            }
         }
     }
-}
