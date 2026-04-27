@@ -8,54 +8,71 @@
 import SwiftUI
 
 struct Options: View {
-    
+    @Binding var cardSet: CardSet
+    var onChange: (() -> Void)?
+
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
-        ZStack{
-            
+        ZStack {
+
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button {
-                        // TODO: store csv file
+                    NavigationLink {
+                        SetView(
+                            cardSet: $cardSet,
+                            onChange: {
+                                onChange?()
+                            }
+                        )
                     } label: {
-                        Label("Save set", systemImage: "square.and.arrow.down")
+                        Label("Edit set", systemImage: "pencil")
                     }
+
                     Button {
-                        // TODO: store csv file filtered
-                    } label: {
-                        Label("Create set of mistakes", systemImage: "square.and.arrow.down")
-                    }
-                    
-                    Button {
-                        // TODO: restart with new changes
+                        onChange?()
                     } label: {
                         Label("Restart", systemImage: "arrow.clockwise")
                     }
-                    
+
                     Button {
-                        // TODO: restart with new changes
+                        cardSet.cards.shuffle()
+                        onChange?()
                     } label: {
                         Label("Shuffle", systemImage: "shuffle")
                     }
-                    
+
                     Button {
-                        // TODO: restart with new changes
+                        for i in cardSet.cards.indices {
+                            let a = cardSet.cards[i].sideA
+                            cardSet.cards[i].sideA = cardSet.cards[i].sideB
+                            cardSet.cards[i].sideB = a
+                        }
+                        onChange?()
                     } label: {
-                        Label("Flip cards", systemImage: "arrow.triangle.2.circlepath")
+                        Label(
+                            "Flip cards",
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
                     }
-                    
-                    Button(role: .destructive) {
-                        // TODO: delete current card
-                    } label: {
-                        Label("Delete this card", systemImage: "trash")
-                    }
-                    
                 } label: {
-                    Image(systemName: "ellipsis.circle") // the icon for dropdown
+                    Image(systemName: "ellipsis.circle")
                         .imageScale(.large)
                 }
             }
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                    }
+                }
+            }
         }
+
     }
+
 }

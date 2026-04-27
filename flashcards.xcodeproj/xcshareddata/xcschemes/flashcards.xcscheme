@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5CEECB562E9BBBFA007D7F65"
-               BuildableName = "flashcards.app"
+               BuildableName = "MinimalCards.app"
                BlueprintName = "flashcards"
                ReferencedContainer = "container:flashcards.xcodeproj">
             </BuildableReference>
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5CEECB562E9BBBFA007D7F65"
-            BuildableName = "flashcards.app"
+            BuildableName = "MinimalCards.app"
             BlueprintName = "flashcards"
             ReferencedContainer = "container:flashcards.xcodeproj">
          </BuildableReference>
@@ -86,7 +86,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5CEECB562E9BBBFA007D7F65"
-            BuildableName = "flashcards.app"
+            BuildableName = "MinimalCards.app"
             BlueprintName = "flashcards"
             ReferencedContainer = "container:flashcards.xcodeproj">
          </BuildableReference>

@@ -7,11 +7,15 @@
 
 import SwiftUI
 
-struct CardSet {
-    var name: String;
+struct CardSet: Identifiable, Codable {
+    var id: UUID = UUID()
+    var index: Int = 0
+    var name: String
     var cards: [Card]
+    var mistakeCards : Set<Card> = Set<Card>()
 }
-struct Card {
-    var sideA: String;
-    var sideB: String;
+struct Card: Hashable, Identifiable, Codable {
+    var id: UUID = UUID()
+    var sideA: String
+    var sideB: String
 }

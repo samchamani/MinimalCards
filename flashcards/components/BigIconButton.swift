@@ -11,22 +11,29 @@ struct BigIconButton: View {
     let iconSF: String
     let label: String
     let action: () -> Void
-    
+    var destructive: Bool = false
+
     var body: some View {
-        Button(action:{
+        Button(role: destructive ? .destructive : nil) {
             action()
-        }){
-            VStack {
-                Image(systemName: iconSF)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 25)
-                    .overlay(
-                        Circle().stroke(Color.accentColor).frame(width: 60, height: 60)
-                    )
-                    .padding(25)
-                Text(label)
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 50)
+                    .fill(Color(.secondarySystemBackground))
+                    .frame(height: 60)
+                    .shadow(radius: 5, y: 5)
+                    .padding([.leading, .trailing])
+
+                HStack {
+                    Image(systemName: iconSF)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 16)
+                    Text(label)
+                }
+
             }
+
         }
     }
 }
