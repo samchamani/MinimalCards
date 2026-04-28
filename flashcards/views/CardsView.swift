@@ -13,13 +13,16 @@ struct CardsView: View {
     @State var correctOnes: Int
     @State var markerOpacity: Double = 0.0
     @State var signalOpacity: CGFloat = 0
+    
+    @State private var showMistakePopup: Bool = false
+    @State private var showExporter = false
+    @State private var csvDocument: CSVDocument?
 
-    
     init(cardSet: Binding<CardSet>) {
-            self._cardSet = cardSet
-            self._correctOnes = State(initialValue: cardSet.wrappedValue.index)
+        self._cardSet = cardSet
+        self._correctOnes = State(initialValue: cardSet.wrappedValue.index)
     }
-    
+
     let generator = UINotificationFeedbackGenerator()
 
     var body: some View {
@@ -68,14 +71,32 @@ struct CardsView: View {
                             iconSF: "xmark",
                             label: "Create a mistake deck",
                             action: {
+                                showMistakePopup = true
+                            },
+                            destructive: true
+                        ).confirmationDialog(
+                            "Do you want to export this deck first?",
+                            isPresented: $showMistakePopup,
+                            titleVisibility: .visible
+                        ) {
+                            Button("Export first") {
+                                let csvText = generateCSVString(cardSet: cardSet)
+                                csvDocument = CSVDocument(
+                                    data: Data(csvText.utf8)
+                                )
+                                showExporter = true
+                            }
+                            Button("Replace", role: .destructive) {
                                 cardSet.name = cardSet.name + " (Mistakes)"
                                 cardSet.cards = Array(cardSet.mistakeCards)
                                 cardSet.mistakeCards = Set<Card>()
                                 cardSet.index = 0
                                 correctOnes = 0
-                            },
-                            destructive: true
-                        )
+                            }
+                        } message: {
+                            Text("Confirming replaces the current deck.")
+
+                        }
                     }
 
                 } else {
@@ -94,7 +115,9 @@ struct CardsView: View {
                             }
                         },
                         onLeft: {
-                            cardSet.mistakeCards.insert(cardSet.cards[cardSet.index])
+                            cardSet.mistakeCards.insert(
+                                cardSet.cards[cardSet.index]
+                            )
                             generator.notificationOccurred(.error)
                             withAnimation(.linear(duration: 0.2)) {
                                 signalOpacity = -1
@@ -120,6 +143,24 @@ struct CardsView: View {
 
         }
         .navigationTitle(cardSet.name)
+        .fileExporter(
+            isPresented: $showExporter,
+            document: csvDocument,
+            contentType: .commaSeparatedText,
+            defaultFilename: "\(cardSet.name)"
+        ) { result in
+            switch result {
+            case .success:
+                print("File saved!")
+                cardSet.name = cardSet.name + " (Mistakes)"
+                cardSet.cards = Array(cardSet.mistakeCards)
+                cardSet.mistakeCards = Set<Card>()
+                cardSet.index = 0
+                correctOnes = 0
+            case .failure(let error):
+                print("Failed to save file:", error)
+            }
+        }
         Options(
             cardSet: $cardSet,
             onChange: {
