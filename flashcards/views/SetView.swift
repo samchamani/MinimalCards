@@ -11,7 +11,7 @@ struct SetView: View {
     @Binding var cardSet: CardSet
 
     var onChange: (() -> Void)?
-    
+
     @State private var selectedIDs = Set<UUID>()
     @State private var showExporter = false
     @State private var csvDocument: CSVDocument?
@@ -19,31 +19,22 @@ struct SetView: View {
     var body: some View {
         ZStack {
             Background()
-            VStack {
-                
-                TextField("Deck title", text: $cardSet.name)
-                    .font(.title2)
-                    .multilineTextAlignment(.center)
-                    .submitLabel(.done)
-                    .padding()
-
-                CardOneSideList(
-                    cards: $cardSet.cards,
-                    selectedIDs: $selectedIDs,
-                    onChange: {
-                        onChange?()
-                    }
-                )
-            }
+            CardOneSideList(
+                cards: $cardSet.cards,
+                selectedIDs: $selectedIDs,
+                onChange: {
+                    onChange?()
+                }
+            )
+            
         }
         .navigationTitle("Edit Deck")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
-                        let csvText = generateCSVString(cardSet: cardSet)
                         csvDocument = CSVDocument(
-                            data: Data(csvText.utf8)
+                            data: Data(StorageManager.csvString(from: cardSet).utf8)
                         )
                         showExporter = true
                     } label: {
@@ -54,11 +45,8 @@ struct SetView: View {
                     }
 
                     Button(role: .destructive) {
-                        cardSet.cards.removeAll {
-                            card in
-                            selectedIDs.contains(card.id)
-
-                        }
+                        cardSet.cards.removeAll { selectedIDs.contains($0.id) }
+                        cardSet.index = min(cardSet.index, max(0, cardSet.cards.count - 1))
                         selectedIDs.removeAll()
                         onChange?()
                     } label: {
@@ -79,8 +67,8 @@ struct SetView: View {
                     defaultFilename: "\(cardSet.name)"
                 ) { result in
                     switch result {
-                    case .success:
-                        print("File saved!")
+                    case .success(let savedURL):
+                        StorageManager.saveBookmark(from: savedURL)
                     case .failure(let error):
                         print("Failed to save file:", error)
                     }
@@ -112,17 +100,4 @@ struct SetView: View {
             cardSet: $cardSet
         )
     }
-}
-
-func generateCSVString(cardSet: CardSet) -> String {
-    var csvText = ""
-    for card in cardSet.cards {
-        let escapedSideA =
-            "\"\(card.sideA.replacingOccurrences(of: "\"", with: "\"\""))\""
-        let escapedSideB =
-            "\"\(card.sideB.replacingOccurrences(of: "\"", with: "\"\""))\""
-        csvText +=
-            "\(escapedSideA),\(escapedSideB)\n"
-    }
-    return csvText
 }

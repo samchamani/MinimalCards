@@ -13,6 +13,8 @@ struct StartView: View {
     @Binding var cardSet: CardSet
 
     @State private var showImporter = false
+    @State private var showExporter = false
+    @State private var csvDocument: CSVDocument?
 
     var body: some View {
         ZStack {
@@ -42,11 +44,12 @@ struct StartView: View {
                     iconSF: "plus",
                     label: "New",
                     action: {
-                        cardSet = CardSet(
-                            name: "New Deck",
-                            cards: []
+                        StorageManager.clearBookmark()
+                        cardSet = CardSet(name: "New Deck", cards: [])
+                        csvDocument = CSVDocument(
+                            data: Data(StorageManager.csvString(from: cardSet).utf8)
                         )
-                        showCardsView = true
+                        showExporter = true
                     }
                 )
 
@@ -54,95 +57,90 @@ struct StartView: View {
                     iconSF: "rectangle.stack",
                     label: "Open",
                     action: {
-                        self.showImporter = true
+                        showImporter = true
                     }
                 )
-                
+
                 BigIconButton(
                     iconSF: "arrow.clockwise",
                     label: "Continue",
                     action: {
                         showCardsView = true
                     }
-                
                 ).disabled(cardSet.cards.isEmpty)
-
-                .fileImporter(
-                    isPresented: $showImporter,
-                    allowedContentTypes: [.commaSeparatedText],
-                    allowsMultipleSelection: true
-                ) { result in
-                    do {
-                        let urls = try result.get()
-                        let setName: String
-                        if urls.count == 1, let first = urls.first {
-                            setName = first.lastPathComponent
-                                .replacingOccurrences(
-                                    of: ".csv",
-                                    with: "",
-                                    options: .caseInsensitive
-                                )
-                        } else {
-                            setName = "Mixed Deck"
-                        }
-                        var loadedSet: CardSet = CardSet(
-                            name: setName,
-                            cards: []
-                        )
-                        for url in urls {
-
-                            guard url.startAccessingSecurityScopedResource()
-                            else {
-                                print(
-                                    "Could not access file: \(url.lastPathComponent)"
-                                )
-                                return
-                            }
-                            defer { url.stopAccessingSecurityScopedResource() }
-
-                            let csv = try EnumeratedCSV(
-                                url: url,
-                                loadColumns: false
-                            )
-
-                            if csv.header.count >= 2 {
-                                let firstSideA = csv.header[0]
-                                    .trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    )
-                                let firstSideB = csv.header[1]
-                                    .trimmingCharacters(
-                                        in: .whitespacesAndNewlines
-                                    )
-                                loadedSet.cards.append(
-                                    Card(sideA: firstSideA, sideB: firstSideB)
-                                )
-                            }
-
-                            for row in csv.rows {
-                                let sideA = row[0].trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                )
-                                let sideB = row[1].trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                )
-                                loadedSet.cards.append(
-                                    Card(sideA: sideA, sideB: sideB)
-                                )
-                            }
-                        }
-                        cardSet = loadedSet
-                        showCardsView = true
-
-                    } catch {
-                        print("Failed file selection:", error)
-                    }
-                }
 
                 Spacer()
             }
-            Spacer()
+        }
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.commaSeparatedText],
+            allowsMultipleSelection: true
+        ) { result in
+            do {
+                let urls = try result.get()
+                let setName: String
+                if urls.count == 1, let first = urls.first {
+                    setName = first.lastPathComponent
+                        .replacingOccurrences(
+                            of: ".csv",
+                            with: "",
+                            options: .caseInsensitive
+                        )
+                } else {
+                    setName = "Mixed Deck"
+                }
+                var loadedSet: CardSet = CardSet(name: setName, cards: [])
+                for url in urls {
+                    guard url.startAccessingSecurityScopedResource() else {
+                        print("Could not access file: \(url.lastPathComponent)")
+                        return
+                    }
+                    defer { url.stopAccessingSecurityScopedResource() }
 
+                    let csv = try EnumeratedCSV(url: url, loadColumns: false)
+
+                    if csv.header.count >= 2 {
+                        let firstSideA = csv.header[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let firstSideB = csv.header[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        loadedSet.cards.append(Card(sideA: firstSideA, sideB: firstSideB))
+                    }
+                    for row in csv.rows {
+                        let sideA = row[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let sideB = row[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        loadedSet.cards.append(Card(sideA: sideA, sideB: sideB))
+                    }
+
+                    if urls.count == 1 {
+                        StorageManager.saveBookmark(from: url)
+                    }
+                }
+                cardSet = loadedSet
+
+                if urls.count > 1 {
+                    csvDocument = CSVDocument(
+                        data: Data(StorageManager.csvString(from: loadedSet).utf8)
+                    )
+                    showExporter = true
+                } else {
+                    showCardsView = true
+                }
+            } catch {
+                print("Failed file selection:", error)
+            }
+        }
+        .fileExporter(
+            isPresented: $showExporter,
+            document: csvDocument,
+            contentType: .commaSeparatedText,
+            defaultFilename: cardSet.name
+        ) { result in
+            showExporter = false
+            if case .success(let savedURL) = result {
+                StorageManager.saveBookmark(from: savedURL)
+                cardSet.name = savedURL.deletingPathExtension().lastPathComponent
+                showCardsView = true
+            }
         }
     }
 }

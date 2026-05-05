@@ -13,10 +13,16 @@ struct CardsView: View {
     @State var correctOnes: Int
     @State var markerOpacity: Double = 0.0
     @State var signalOpacity: CGFloat = 0
-    
+
     @State private var showMistakePopup: Bool = false
     @State private var showExporter = false
     @State private var csvDocument: CSVDocument?
+    @State private var exportPhase: ExportPhase = .currentDeck
+
+    private enum ExportPhase {
+        case currentDeck
+        case mistakeDeck
+    }
 
     init(cardSet: Binding<CardSet>) {
         self._cardSet = cardSet
@@ -80,22 +86,25 @@ struct CardsView: View {
                             titleVisibility: .visible
                         ) {
                             Button("Export first") {
-                                let csvText = generateCSVString(cardSet: cardSet)
+                                exportPhase = .currentDeck
                                 csvDocument = CSVDocument(
-                                    data: Data(csvText.utf8)
+                                    data: Data(StorageManager.csvString(from: cardSet).utf8)
                                 )
                                 showExporter = true
                             }
-                            Button("Replace", role: .destructive) {
-                                cardSet.name = cardSet.name + " (Mistakes)"
-                                cardSet.cards = Array(cardSet.mistakeCards)
-                                cardSet.mistakeCards = Set<Card>()
-                                cardSet.index = 0
-                                correctOnes = 0
+                            Button("Save mistakes", role: .destructive) {
+                                let mistakeSet = CardSet(
+                                    name: cardSet.name + " (Mistakes)",
+                                    cards: Array(cardSet.mistakeCards)
+                                )
+                                exportPhase = .mistakeDeck
+                                csvDocument = CSVDocument(
+                                    data: Data(StorageManager.csvString(from: mistakeSet).utf8)
+                                )
+                                showExporter = true
                             }
                         } message: {
                             Text("Confirming replaces the current deck.")
-
                         }
                     }
 
@@ -147,16 +156,31 @@ struct CardsView: View {
             isPresented: $showExporter,
             document: csvDocument,
             contentType: .commaSeparatedText,
-            defaultFilename: "\(cardSet.name)"
+            defaultFilename: exportPhase == .currentDeck
+                ? cardSet.name
+                : "\(cardSet.name) (Mistakes)"
         ) { result in
             switch result {
-            case .success:
-                print("File saved!")
-                cardSet.name = cardSet.name + " (Mistakes)"
-                cardSet.cards = Array(cardSet.mistakeCards)
-                cardSet.mistakeCards = Set<Card>()
-                cardSet.index = 0
-                correctOnes = 0
+            case .success(let savedURL):
+                if exportPhase == .currentDeck {
+                    let mistakeSet = CardSet(
+                        name: cardSet.name + " (Mistakes)",
+                        cards: Array(cardSet.mistakeCards)
+                    )
+                    csvDocument = CSVDocument(
+                        data: Data(StorageManager.csvString(from: mistakeSet).utf8)
+                    )
+                    exportPhase = .mistakeDeck
+                    showExporter = true
+                } else {
+                    StorageManager.saveBookmark(from: savedURL)
+                    cardSet.name = savedURL.deletingPathExtension().lastPathComponent
+                    cardSet.cards = Array(cardSet.mistakeCards)
+                    cardSet.mistakeCards = Set<Card>()
+                    cardSet.index = 0
+                    correctOnes = 0
+                    exportPhase = .currentDeck
+                }
             case .failure(let error):
                 print("Failed to save file:", error)
             }

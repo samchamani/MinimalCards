@@ -28,6 +28,9 @@ struct ContentView: View {
                         StorageManager.save(cardSet: cardSet)
                     }
                 }
+                .onChange(of: cardSet.cards) { _, _ in
+                    StorageManager.syncToLinkedFile(cardSet: cardSet)
+                }
             
         }
         
