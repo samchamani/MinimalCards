@@ -16,30 +16,31 @@ struct StartView: View {
     @State private var showExporter = false
     @State private var csvDocument: CSVDocument?
 
+    @State private var splashVisible = true
+    @State private var showButtons = false
+    @State private var hasAnimated = false
+
     var body: some View {
         ZStack {
             Background()
+
+            // Final layout
             VStack {
                 Spacer()
-                Text("MinimalCards")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.clear)
-                    .overlay(
-                        LinearGradient(
-                            colors: [.accentColor, .purple],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .mask(
-                            Text("MinimalCards")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                        )
-                    )
-                    .padding()
+                VStack {
+                    Image("LaunchIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 200, height: 200)
+                    Text("MinimalCards")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding()
+                }
+                .opacity(showButtons ? 1 : 0)
+                .animation(.easeOut(duration: 0.25), value: showButtons)
+                
                 Spacer()
-
                 BigIconButton(
                     iconSF: "plus",
                     label: "New",
@@ -52,6 +53,9 @@ struct StartView: View {
                         showExporter = true
                     }
                 )
+                .opacity(showButtons ? 1 : 0)
+                .offset(y: showButtons ? 0 : 20)
+                .animation(.spring(response: 0.45, dampingFraction: 0.8), value: showButtons)
 
                 BigIconButton(
                     iconSF: "rectangle.stack",
@@ -60,6 +64,9 @@ struct StartView: View {
                         showImporter = true
                     }
                 )
+                .opacity(showButtons ? 1 : 0)
+                .offset(y: showButtons ? 0 : 20)
+                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.07), value: showButtons)
 
                 BigIconButton(
                     iconSF: "arrow.clockwise",
@@ -67,9 +74,43 @@ struct StartView: View {
                     action: {
                         showCardsView = true
                     }
-                ).disabled(cardSet.cards.isEmpty)
+                )
+                .disabled(cardSet.cards.isEmpty)
+                .opacity(showButtons ? 1 : 0)
+                .offset(y: showButtons ? 0 : 20)
+                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.14), value: showButtons)
 
                 Spacer()
+            }
+
+            // Splash overlay
+            if splashVisible {
+                ZStack {
+                    Color(.secondarySystemBackground).ignoresSafeArea()
+                    VStack {
+                        Spacer()
+                        Image("LaunchIcon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 200)
+                        Text("MinimalCards")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .padding()
+                        Spacer()
+                    }
+                }
+                .transition(.move(edge: .top))
+            }
+        }
+        .onAppear {
+            guard !hasAnimated else { return }
+            hasAnimated = true
+            withAnimation(.easeInOut(duration: 0.5)) {
+                splashVisible = false
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showButtons = true
             }
         }
         .fileImporter(
