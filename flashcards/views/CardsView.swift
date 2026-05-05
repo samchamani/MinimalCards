@@ -74,25 +74,9 @@ struct CardsView: View {
 
                     if !cardSet.mistakeCards.isEmpty {
                         BigIconButton(
-                            iconSF: "xmark",
+                            iconSF: "plus",
                             label: "Create a mistake deck",
                             action: {
-                                showMistakePopup = true
-                            },
-                            destructive: true
-                        ).confirmationDialog(
-                            "Do you want to export this deck first?",
-                            isPresented: $showMistakePopup,
-                            titleVisibility: .visible
-                        ) {
-                            Button("Export first") {
-                                exportPhase = .currentDeck
-                                csvDocument = CSVDocument(
-                                    data: Data(StorageManager.csvString(from: cardSet).utf8)
-                                )
-                                showExporter = true
-                            }
-                            Button("Save mistakes", role: .destructive) {
                                 let mistakeSet = CardSet(
                                     name: cardSet.name + " (Mistakes)",
                                     cards: Array(cardSet.mistakeCards)
@@ -103,9 +87,7 @@ struct CardsView: View {
                                 )
                                 showExporter = true
                             }
-                        } message: {
-                            Text("Confirming replaces the current deck.")
-                        }
+                        )
                     }
 
                 } else {
