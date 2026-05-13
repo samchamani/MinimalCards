@@ -28,7 +28,7 @@ struct Options: View {
                             }
                         )
                     } label: {
-                        Label("Edit set", systemImage: "pencil")
+                        Label("Edit deck", systemImage: "pencil")
                     }
 
                     Button {

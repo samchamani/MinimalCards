@@ -15,6 +15,7 @@ struct SetView: View {
     @State private var selectedIDs = Set<UUID>()
     @State private var showExporter = false
     @State private var csvDocument: CSVDocument?
+    @State private var showMarker = false
 
     var body: some View {
         ZStack {
@@ -24,7 +25,8 @@ struct SetView: View {
                 selectedIDs: $selectedIDs,
                 onChange: {
                     onChange?()
-                }
+                },
+                showMarker: $showMarker.wrappedValue
             )
             
         }
@@ -43,6 +45,16 @@ struct SetView: View {
                             systemImage: "square.and.arrow.down"
                         )
                     }
+                    
+                    Button {
+                        showMarker.toggle()
+                        selectedIDs = Set<UUID>()
+                    } label: {
+                        Label(
+                            "\(showMarker ? "Hide" : "Show") markers",
+                            systemImage: "circle"
+                        )
+                    }
 
                     Button(role: .destructive) {
                         cardSet.cards.removeAll { selectedIDs.contains($0.id) }
@@ -55,7 +67,7 @@ struct SetView: View {
                             systemImage: "trash"
                         )
                     }
-                    .disabled(selectedIDs.isEmpty)
+                    .disabled(selectedIDs.isEmpty || !showMarker)
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .imageScale(.large)

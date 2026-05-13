@@ -15,6 +15,8 @@ struct CardOneSideList: View {
     var onChange: (() -> Void)?
 
     var scrollAnchor = "anchor"
+    var showMarker: Bool = false
+
     @FocusState private var activeCard: FieldFocus?
 
     @State private var search: String = ""
@@ -33,36 +35,42 @@ struct CardOneSideList: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                Text("\($cards.count) cards")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 LazyVStack {
                     ForEach(0..<displayedTuples.count, id: \.self) {
                         index in
                         HStack {
-                            Checkbox(
-                                isSelected:
-                                    selectedIDs.contains(
-                                        displayedTuples[index].card.id
-                                    ),
-                                action: {
-                                    if selectedIDs.contains(
-                                        displayedTuples[index].card.id
-                                    ) {
-                                        selectedIDs.remove(
+                            if showMarker {
+                                Checkbox(
+                                    isSelected:
+                                        selectedIDs.contains(
                                             displayedTuples[index].card.id
-                                        )
-                                    } else {
-                                        selectedIDs.insert(
+                                        ),
+                                    action: {
+                                        if selectedIDs.contains(
                                             displayedTuples[index].card.id
-                                        )
+                                        ) {
+                                            selectedIDs.remove(
+                                                displayedTuples[index].card.id
+                                            )
+                                        } else {
+                                            selectedIDs.insert(
+                                                displayedTuples[index].card.id
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                             CardOneSide(
                                 card: $cards[displayedTuples[index].index],
                                 activeCard: $activeCard,
                                 focusIndex: index
                             )
                         }
-                        .padding([.leading, .trailing, .bottom])
+                        .padding([.leading, .trailing])
+                        .padding(.bottom, 5)
                         .id(index)
 
                     }
@@ -105,11 +113,10 @@ struct CardOneSideList: View {
                             KeyboardButton(
                                 icon: "plus",
                                 action: {
-                                    cards.append(Card(sideA: "", sideB: ""))
                                     search = ""
-                                    buildDisplayed()
+                                    cards.append(Card(sideA: "", sideB: ""))
                                     activeCard = .sideA(
-                                        row: displayedTuples.count - 1
+                                        row: displayedTuples.count
                                     )
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         proxy.scrollTo(
@@ -163,7 +170,7 @@ struct CardOneSideList: View {
                             )
                             Spacer()
                             KeyboardButton(
-                                icon: "keyboard.chevron.compact.down",
+                                icon: "checkmark",
                                 action: { activeCard = nil }
                             ).padding(.trailing)
                         }

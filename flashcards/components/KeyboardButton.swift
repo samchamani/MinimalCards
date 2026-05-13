@@ -19,6 +19,7 @@ struct KeyboardButton: View {
         } label: {
             Image(systemName: icon)
                 .imageScale(.large)
+                .contentShape(Circle())
         }
     }
 }
