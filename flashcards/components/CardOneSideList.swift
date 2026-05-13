@@ -16,50 +16,48 @@ struct CardOneSideList: View {
 
     var scrollAnchor = "anchor"
     @FocusState private var activeCard: FieldFocus?
-    
+
     @State private var search: String = ""
+    @State private var displayedTuples: [(index: Int, card: Card)] = []
 
-    private var filteredTuples: [(index: Int, card: Card)] {
-        let zippedCards = Array(zip(cards.indices, cards))
-
+    private func buildDisplayed() {
         let normalizedSearch =
             search
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
-
-        return zippedCards.filter { pair in
-            IsStringInCard(search: normalizedSearch, card: pair.1)
-        }
+        displayedTuples = cards.enumerated()
+            .filter { IsStringInCard(search: normalizedSearch, card: $0.element) }
+            .map { (index: $0.offset, card: $0.element) }
     }
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack {
-                    ForEach(0..<filteredTuples.count, id: \.self) {
+                    ForEach(0..<displayedTuples.count, id: \.self) {
                         index in
                         HStack {
                             Checkbox(
                                 isSelected:
                                     selectedIDs.contains(
-                                        filteredTuples[index].card.id
+                                        displayedTuples[index].card.id
                                     ),
                                 action: {
                                     if selectedIDs.contains(
-                                        filteredTuples[index].card.id
+                                        displayedTuples[index].card.id
                                     ) {
                                         selectedIDs.remove(
-                                            filteredTuples[index].card.id
+                                            displayedTuples[index].card.id
                                         )
                                     } else {
                                         selectedIDs.insert(
-                                            filteredTuples[index].card.id
+                                            displayedTuples[index].card.id
                                         )
                                     }
                                 }
                             )
                             CardOneSide(
-                                card: $cards[filteredTuples[index].index],
+                                card: $cards[displayedTuples[index].index],
                                 activeCard: $activeCard,
                                 focusIndex: index
                             )
@@ -75,6 +73,9 @@ struct CardOneSideList: View {
             }
             .searchable(text: $search)
             .scrollDismissesKeyboard(.interactively)
+            .onAppear { buildDisplayed() }
+            .onChange(of: search) { buildDisplayed() }
+            .onChange(of: cards.count) { buildDisplayed() }
             .toolbar {
 
                 if #available(iOS 26.0, *) {
@@ -106,8 +107,9 @@ struct CardOneSideList: View {
                                 action: {
                                     cards.append(Card(sideA: "", sideB: ""))
                                     search = ""
+                                    buildDisplayed()
                                     activeCard = .sideA(
-                                        row: filteredTuples.count - 1
+                                        row: displayedTuples.count - 1
                                     )
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         proxy.scrollTo(
@@ -142,7 +144,7 @@ struct CardOneSideList: View {
                                 action: {
                                     activeCard = getNextField(
                                         from: current,
-                                        total: filteredTuples.count
+                                        total: displayedTuples.count
                                     )
                                     let targetRow: Int
                                     switch current {
@@ -157,7 +159,7 @@ struct CardOneSideList: View {
                                     }
                                 }
                             ).disabled(
-                                current == .sideB(row: filteredTuples.count - 1)
+                                current == .sideB(row: displayedTuples.count - 1)
                             )
                             Spacer()
                             KeyboardButton(
