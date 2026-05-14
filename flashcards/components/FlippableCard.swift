@@ -47,7 +47,7 @@ struct FlippableCard: View {
                 .opacity(!showA ? 0 : 1)
                 .focused($sideAFocused, equals: true)
                 .disabled(!isEditMode)
-
+                .id(card.id.uuidString + "-A")
 
             TextField(
                 "Side B",
@@ -68,14 +68,13 @@ struct FlippableCard: View {
                 .opacity(showA ? 0 : 1)
                 .focused($sideAFocused, equals: false)
                 .disabled(!isEditMode)
-
+                .id(card.id.uuidString + "-B")
         }
         .onAppear {
             degree = showA ? 0.0 : 180.0
         }
         .onChange(of: showA) { _,newShowA in
             degree = newShowA ? 0.0 : 180.0
-
         }
         .onChange(of: isEditMode, { _, newEditMode in
             if newEditMode == true {
@@ -112,15 +111,11 @@ struct FlippableCard: View {
                             action: {
                                 generator.impactOccurred()
                                 let direction = showA ? 1.0 : -1.0
-                                withAnimation(.easeIn(duration: 0.2)) {
-                                    degree += direction * 90
-                                } completion: {
+                                withAnimation(.easeInOut(duration: 0.4)) {
                                     showA.toggle()
-                                    withAnimation(.easeOut(duration: 0.2)) {
-                                        degree += direction * 90
-                                    } completion: {
-                                        sideAFocused?.toggle()
-                                    }
+                                    degree += direction * 180
+                                } completion: {
+                                    sideAFocused?.toggle()                             
                                 }
                             }
                         ).padding(.leading)
