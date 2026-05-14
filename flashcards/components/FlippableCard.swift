@@ -12,8 +12,11 @@ struct FlippableCard: View {
     @Binding var card: Card
     @Binding var showA: Bool
     @Binding var isReadable: Bool
+    @Binding var isEditMode: Bool
 
     @State private var degree = 0.0
+    
+    @FocusState private var sideAFocused: Bool?
 
     let height: CGFloat = 300
     let radius: CGFloat = 20
@@ -26,7 +29,12 @@ struct FlippableCard: View {
 
         ZStack {
 
-            Text(card.sideA)
+            TextField(
+                    "Side A",
+                    text: $card.sideA,
+                    axis: .vertical
+                )
+                .lineLimit(1...9)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)
@@ -37,8 +45,16 @@ struct FlippableCard: View {
                         .shadow(radius: 5, y: 5)
                 )
                 .opacity(!showA ? 0 : 1)
+                .focused($sideAFocused, equals: true)
+                .disabled(!isEditMode)
 
-            Text(card.sideB)
+
+            TextField(
+                "Side B",
+                text: $card.sideB,
+                axis: .vertical
+            )
+                .lineLimit(1...9)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)
@@ -50,6 +66,8 @@ struct FlippableCard: View {
                 )
                 .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
                 .opacity(showA ? 0 : 1)
+                .focused($sideAFocused, equals: false)
+                .disabled(!isEditMode)
 
         }
         .onAppear {
@@ -59,12 +77,19 @@ struct FlippableCard: View {
             degree = newShowA ? 0.0 : 180.0
 
         }
+        .onChange(of: isEditMode, { _, newEditMode in
+            if newEditMode == true {
+                sideAFocused = showA
+            } else {
+                sideAFocused = nil
+            }
+        })
         .rotation3DEffect(
             .degrees(degree),
             axis: (x: 0, y: 1, z: 0)
         )
         .onTapGesture {
-            if isReadable {
+            if isReadable && !isEditMode {
                 generator.impactOccurred()
                 let direction = showA ? 1.0 : -1.0
                 withAnimation(.easeIn(duration: 0.2)) {
@@ -76,6 +101,39 @@ struct FlippableCard: View {
                     }
                 }
 
+            }
+        }
+        .toolbar {
+            if isEditMode {
+                ToolbarItemGroup(placement: .keyboard) {
+                    HStack {
+                        KeyboardButton(
+                            icon: "arrow.triangle.2.circlepath",
+                            action: {
+                                generator.impactOccurred()
+                                let direction = showA ? 1.0 : -1.0
+                                withAnimation(.easeIn(duration: 0.2)) {
+                                    degree += direction * 90
+                                } completion: {
+                                    showA.toggle()
+                                    withAnimation(.easeOut(duration: 0.2)) {
+                                        degree += direction * 90
+                                    } completion: {
+                                        sideAFocused?.toggle()
+                                    }
+                                }
+                            }
+                        ).padding(.leading)
+                        Spacer()
+                        KeyboardButton(
+                            icon: "checkmark",
+                            action: {
+                                sideAFocused = nil
+                                isEditMode = false
+                            }
+                        ).padding(.trailing)
+                    }
+                }
             }
         }
     }
@@ -92,7 +150,8 @@ struct FlippableCard: View {
                 Card(sideA: "Qasdkl\n lsdaksdl; \n\n\n djlksjdlj ", sideB: "유로")
             ),
             showA: $showA,
-            isReadable: .constant(true)
+            isReadable: .constant(true),
+            isEditMode: .constant(true)
         ).padding()
     }
 

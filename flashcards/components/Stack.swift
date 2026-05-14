@@ -10,6 +10,7 @@ import SwiftUI
 struct Stack: View {
     @Binding var cards: [Card]
     @Binding var index: Int
+    @Binding var isEditMode: Bool
     
     @State var showASide: Bool = true
     @State var isFrontReadable: Bool = true
@@ -40,6 +41,7 @@ struct Stack: View {
                 card: $cards[index],
                 showA: .constant(true),
                 isReadable: $isFrontReadable,
+                isEditMode: .constant(false),
             )
             .rotationEffect(.degrees(offScreenCardOffset.width / 8))
             .offset(offScreenCardOffset)
@@ -51,6 +53,8 @@ struct Stack: View {
                         card: $cards[index + 1],
                         showA: .constant(true),
                         isReadable: .constant(false),
+                        isEditMode: .constant(false),
+
                     )
                         .offset(x: 0, y: CGFloat(cardsInStack) * deckOffset)
                 }
@@ -60,6 +64,7 @@ struct Stack: View {
                         card: $cards[index + 1],
                         showA: .constant(true),
                         isReadable: .constant(false),
+                        isEditMode: .constant(false),
                     )
                     .offset(x: 0, y: CGFloat(cardsInStack - i) * deckOffset)
                 }.offset(stackOffset)
@@ -70,17 +75,19 @@ struct Stack: View {
                 card: $cards[index],
                 showA: $showASide,
                 isReadable: $isFrontReadable,
+                isEditMode: $isEditMode,
             )
             .rotationEffect(.degrees(offset.width / 8))
             .offset(offset)
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        
+                        if !isEditMode {
                             offset = gesture.translation
                             let direction = offset.width > 0.0 ? 1.0 : -1.0
                             let dragPercent = direction * min(abs(offset.width), minSwipe) / minSwipe
                             onDrag?(dragPercent)
+                        }
 
                     }
                     .onEnded { _ in
@@ -178,6 +185,7 @@ struct Stack: View {
         Stack(
             cards: $mockCards,
             index: $mockIndex,
+            isEditMode: .constant(false)
         )
     }.padding([.leading, .trailing], 10)
 }

@@ -13,7 +13,8 @@ struct CardsView: View {
     @State var correctOnes: Int
     @State var markerOpacity: Double = 0.0
     @State var signalOpacity: CGFloat = 0
-
+    
+    @State private var isEditMode: Bool = false
     @State private var showMistakePopup: Bool = false
     @State private var showExporter = false
     @State private var csvDocument: CSVDocument?
@@ -94,6 +95,7 @@ struct CardsView: View {
                     Stack(
                         cards: $cardSet.cards,
                         index: $cardSet.index,
+                        isEditMode: $isEditMode,
                         onRight: {
                             correctOnes += 1
                             generator.notificationOccurred(.success)
@@ -169,6 +171,7 @@ struct CardsView: View {
         }
         Options(
             cardSet: $cardSet,
+            isEditMode: $isEditMode,
             onChange: {
                 cardSet.index = 0
                 correctOnes = 0

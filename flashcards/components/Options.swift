@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Options: View {
     @Binding var cardSet: CardSet
+    @Binding var isEditMode: Bool
     var onChange: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
@@ -30,6 +31,12 @@ struct Options: View {
                     } label: {
                         Label("Edit deck", systemImage: "pencil")
                     }
+                    
+                    Button {
+                        isEditMode = true
+                    } label: {
+                        Label("Edit card", systemImage: "square.and.pencil")
+                    }.disabled(isEditMode == true)
 
                     Button {
                         onChange?()
