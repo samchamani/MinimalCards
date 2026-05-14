@@ -36,41 +36,43 @@ struct CardOneSideList: View {
         ScrollViewReader { proxy in
             ScrollView {
                 Text("\($cards.count) cards")
-                    .font(.caption)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
-                LazyVStack {
+                LazyVStack(spacing: 0) {
                     ForEach(0..<displayedTuples.count, id: \.self) {
                         index in
                         HStack {
-                            if showMarker {
-                                Checkbox(
-                                    isSelected:
-                                        selectedIDs.contains(
-                                            displayedTuples[index].card.id
-                                        ),
-                                    action: {
-                                        if selectedIDs.contains(
-                                            displayedTuples[index].card.id
-                                        ) {
-                                            selectedIDs.remove(
+                            if displayedTuples[index].index < cards.count {
+                                if showMarker {
+                                    Checkbox(
+                                        isSelected:
+                                            selectedIDs.contains(
                                                 displayedTuples[index].card.id
-                                            )
-                                        } else {
-                                            selectedIDs.insert(
+                                            ),
+                                        action: {
+                                            if selectedIDs.contains(
                                                 displayedTuples[index].card.id
-                                            )
+                                            ) {
+                                                selectedIDs.remove(
+                                                    displayedTuples[index].card.id
+                                                )
+                                            } else {
+                                                selectedIDs.insert(
+                                                    displayedTuples[index].card.id
+                                                )
+                                            }
                                         }
-                                    }
+                                    )
+                                }
+                                CardOneSide(
+                                    card: $cards[displayedTuples[index].index],
+                                    activeCard: $activeCard,
+                                    focusIndex: index
                                 )
                             }
-                            CardOneSide(
-                                card: $cards[displayedTuples[index].index],
-                                activeCard: $activeCard,
-                                focusIndex: index
-                            )
                         }
                         .padding([.leading, .trailing])
-                        .padding(.bottom, 5)
+                        .padding(.bottom, 8)
                         .id(index)
 
                     }
